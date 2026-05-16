@@ -1,0 +1,8 @@
+query,gold_doc_ids,retrieved_doc_ids,answer,cited_doc_id,recall_at_k,mrr,ndcg_at_k,answer_keyword_score,faithfulness,citation_relevance,failure_type
+What does BM25 rely on?,doc1,"doc1,doc7,doc2",BM25 is a sparse retrieval method based on exact term matching.,doc1,1.0,1.0,1.0,1.0,1.0,1.0,success
+Why is dense retrieval useful?,doc2,"doc3,doc2,doc1",Hybrid retrieval combines sparse retrieval and dense retrieval.,doc3,1.0,0.5,0.6309297535714575,0.0,1.0,0.0,citation_or_context_selection_failure
+What does hybrid retrieval combine?,doc3,"doc3,doc5,doc7",Hybrid retrieval combines sparse retrieval and dense retrieval.,doc3,1.0,1.0,1.0,0.5,1.0,1.0,generation_failure
+Why is cross-encoder re-ranking expensive?,doc4,"doc4,doc8,doc6",Cross-encoder re-ranking scores each query-document pair jointly.,doc4,1.0,1.0,1.0,0.6666666666666666,1.0,1.0,generation_failure
+What is faithfulness in RAG?,doc6,"doc6,doc5,doc7",Faithfulness measures whether an answer is supported by the retrieved context.,doc6,1.0,1.0,1.0,0.6666666666666666,1.0,1.0,generation_failure
+Does Recall at k evaluate answer quality?,doc7,"doc7,doc6,doc5",It does not evaluate answer quality.,doc7,1.0,1.0,1.0,1.0,1.0,1.0,success
+What is hallucination in RAG?,doc8,"doc8,doc5,doc7",A hallucination occurs when a language model produces information that is not supported by the provided context.,doc8,1.0,1.0,1.0,1.0,1.0,1.0,success
