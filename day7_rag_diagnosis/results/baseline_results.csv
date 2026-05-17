@@ -1,0 +1,8 @@
+query_id,query,gold_docs,retrieved_docs,answer,cited_doc,abstained,answer_keyword_score,faithfulness,citation_relevance,failure_type
+q1,What does BM25 rely on?,doc1,"doc1,doc3,doc2",BM25 is a sparse retrieval method based on lexical term matching.,doc1,False,1.0,1.0,1.0,success
+q2,What is dense retrieval?,doc2,"doc1,doc2,doc3",Dense retrieval is mainly based on SQL joins and B-tree indexes.,doc2,False,0.0,0.0,1.0,hallucination_or_unfaithful_answer
+q3,Why can re-ranking fail?,doc5,"doc5,doc1,doc2","Re-ranking improves ranking quality, but it cannot recover documents missing from the first-stage candidate set.",doc4,False,1.0,1.0,0.0,citation_failure
+q4,What does faithfulness mean in RAG?,doc7,"doc6,doc7,doc1",Faithfulness means the answer is fluent and convincing.,doc7,False,0.0,1.0,1.0,ranking_or_context_selection_failure
+q5,Why is citation relevance important?,doc8,"doc8,doc1,doc7",Citation relevance means the cited document contains evidence for the generated answer.,doc8,False,1.0,1.0,1.0,success
+q6,How does chunking affect RAG?,doc10,"doc6,doc10,doc1",Chunking can affect context completeness and may introduce noise.,doc10,False,1.0,1.0,1.0,success
+q7,How does SQL transaction rollback work in RAG?,,"doc6,doc1,doc2",SQL transaction rollback in RAG is handled by vector embeddings.,doc2,False,1.0,0.0,0.0,unsupported_answer

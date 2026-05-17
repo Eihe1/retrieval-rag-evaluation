@@ -26,11 +26,26 @@ retrieval-rag-evaluation/
 │   ├── results/
 │   └── notes/
 │
-└── day6_rag_eval/
+├── day6_rag_eval/
+│   ├── README.md
+│   ├── src/
+│   ├── results/
+│   └── notes/
+│
+└── day7_rag_diagnosis/
     ├── README.md
     ├── src/
+    │   └── day7_rag_diagnosis_demo.py
     ├── results/
+    │   ├── baseline_results.csv
+    │   ├── evidence_first_results.csv
+    │   ├── abstention_results.csv
+    │   ├── diagnosis_summary.md
+    │   ├── baseline_query_diagnosis.md
+    │   ├── evidence_first_query_diagnosis.md
+    │   └── abstention_query_diagnosis.md
     └── notes/
+        └── day7_rag_diagnosis_notes.md
 ```
 
 ---
@@ -109,6 +124,37 @@ Folder:
 
 ```text
 day6_rag_eval/
+```
+
+---
+
+## Day 7 - RAG Diagnosis and Strategy Trade-off Analysis
+
+Day 7 focuses on moving from metric-based RAG evaluation to diagnosis-driven improvement.
+
+Topics:
+
+- Baseline RAG
+- Evidence-First RAG
+- Abstention RAG
+- Faithfulness
+- Citation relevance
+- Hallucination or unfaithful answer
+- Citation failure
+- Ranking or context selection failure
+- Unsupported answer
+- Correct abstention
+- Over-conservative abstention
+- Strategy trade-off analysis
+
+Main idea:
+
+Retrieval success does not guarantee answer success. A RAG system may retrieve the correct document but still fail due to weak grounding, wrong evidence selection, incorrect citation, or unsupported generation. Different strategies optimize different objectives: baseline RAG has higher coverage, evidence-first RAG improves faithfulness, and abstention RAG reduces unsupported answers but may become over-conservative. Reliable RAG systems should diagnose the query-level failure mode before choosing whether to answer directly, select evidence first, verify citations, rewrite the query, re-rank documents, or abstain.
+
+Folder:
+
+```text
+day7_rag_diagnosis/
 ```
 
 ---

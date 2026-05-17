@@ -1,0 +1,8 @@
+query_id,query,gold_docs,retrieved_docs,answer,cited_doc,abstained,answer_keyword_score,faithfulness,citation_relevance,failure_type
+q1,What does BM25 rely on?,doc1,"doc1,doc3,doc2",BM25 is a sparse retrieval method based on lexical term matching and exact word overlap.,doc1,False,1.0,1.0,1.0,success
+q2,What is dense retrieval?,doc2,"doc1,doc2,doc3",BM25 is a sparse retrieval method based on lexical term matching and exact word overlap.,doc1,False,0.0,1.0,0.0,ranking_or_context_selection_failure
+q3,Why can re-ranking fail?,doc5,"doc5,doc1,doc2","Re-ranking can improve the order of retrieved candidates, but it cannot recover relevant documents missing from the first-stage candidate set.",doc5,False,1.0,1.0,1.0,success
+q4,What does faithfulness mean in RAG?,doc7,"doc6,doc7,doc1",Insufficient evidence.,,True,0.0,1.0,0.0,over_conservative_abstention
+q5,Why is citation relevance important?,doc8,"doc8,doc1,doc7",Citation relevance means that the cited document actually contains evidence for the generated answer.,doc8,False,1.0,1.0,1.0,success
+q6,How does chunking affect RAG?,doc10,"doc6,doc10,doc1",Insufficient evidence.,,True,0.0,1.0,0.0,over_conservative_abstention
+q7,How does SQL transaction rollback work in RAG?,,"doc6,doc1,doc2",Insufficient evidence.,,True,0.0,1.0,0.0,correct_abstention
