@@ -1,0 +1,12 @@
+mode,failure_type,count
+baseline_only,success,5
+baseline_only,unsupported_answer,1
+baseline_only,correct_abstention,1
+evidence_only,success,5
+evidence_only,unsupported_answer,1
+evidence_only,correct_abstention,1
+abstention_only,over_conservative_abstention,1
+abstention_only,success,4
+abstention_only,correct_abstention,2
+adaptive,success,5
+adaptive,correct_abstention,2
