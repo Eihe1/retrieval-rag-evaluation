@@ -1,0 +1,29 @@
+query,query_difficulty,evidence_strength,ranking_ambiguity,strategy,estimated_cost,hallucination_risk,utility
+What does BM25 rely on?,easy,0.34,0.0,baseline_rag,1.0,0.25,0.682
+What does BM25 rely on?,easy,0.34,0.0,evidence_first_rag,1.3,0.15,0.589
+What does BM25 rely on?,easy,0.34,0.0,abstention_rag,1.1,0.1,0.382
+What does BM25 rely on?,easy,0.34,0.0,reranking_rag,2.0,0.12,0.378
+Why is cross-encoder reranking expensive?,easy,0.567,0.0,baseline_rag,1.0,0.25,0.682
+Why is cross-encoder reranking expensive?,easy,0.567,0.0,evidence_first_rag,1.3,0.15,0.589
+Why is cross-encoder reranking expensive?,easy,0.567,0.0,abstention_rag,1.1,0.1,0.382
+Why is cross-encoder reranking expensive?,easy,0.567,0.0,reranking_rag,2.0,0.12,0.378
+What should RAG systems evaluate?,easy,0.66,0.0,baseline_rag,1.0,0.25,0.682
+What should RAG systems evaluate?,easy,0.66,0.0,evidence_first_rag,1.3,0.15,0.589
+What should RAG systems evaluate?,easy,0.66,0.0,abstention_rag,1.1,0.1,0.382
+What should RAG systems evaluate?,easy,0.66,0.0,reranking_rag,2.0,0.12,0.378
+How does abstention help RAG reliability?,medium,0.167,1.0,baseline_rag,1.0,0.25,0.343
+How does abstention help RAG reliability?,medium,0.167,1.0,evidence_first_rag,1.3,0.35,0.368
+How does abstention help RAG reliability?,medium,0.167,1.0,abstention_rag,1.1,0.05,0.76
+How does abstention help RAG reliability?,medium,0.167,1.0,reranking_rag,2.0,0.12,0.418
+How is Adaptive RAG related to query optimization?,easy,0.337,0.375,baseline_rag,1.0,0.25,0.682
+How is Adaptive RAG related to query optimization?,easy,0.337,0.375,evidence_first_rag,1.3,0.15,0.589
+How is Adaptive RAG related to query optimization?,easy,0.337,0.375,abstention_rag,1.1,0.1,0.382
+How is Adaptive RAG related to query optimization?,easy,0.337,0.375,reranking_rag,2.0,0.12,0.378
+Which method improves ranking after retrieval when candidate documents are ambiguous?,medium,0.664,0.091,baseline_rag,1.0,0.25,0.542
+Which method improves ranking after retrieval when candidate documents are ambiguous?,medium,0.664,0.091,evidence_first_rag,1.3,0.15,0.558
+Which method improves ranking after retrieval when candidate documents are ambiguous?,medium,0.664,0.091,abstention_rag,1.1,0.1,0.502
+Which method improves ranking after retrieval when candidate documents are ambiguous?,medium,0.664,0.091,reranking_rag,2.0,0.12,0.518
+What is the best GPU for training huge models?,medium,0.2,0.444,baseline_rag,1.0,0.25,0.343
+What is the best GPU for training huge models?,medium,0.2,0.444,evidence_first_rag,1.3,0.15,0.439
+What is the best GPU for training huge models?,medium,0.2,0.444,abstention_rag,1.1,0.05,0.76
+What is the best GPU for training huge models?,medium,0.2,0.444,reranking_rag,2.0,0.12,0.418

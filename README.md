@@ -1,8 +1,8 @@
 # Retrieval and RAG Evaluation Portfolio
 
-This repository documents a research-oriented learning project on retrieval systems, retrieval evaluation, re-ranking, RAG evaluation, failure analysis, and adaptive RAG strategy routing.
+This repository documents a research-oriented learning project on retrieval systems, retrieval evaluation, re-ranking, RAG evaluation, failure analysis, adaptive RAG strategy routing, and cost-aware RAG query optimization.
 
-The project is organized as a multi-day portfolio. It starts from basic retrieval methods, then moves to retrieval evaluation and re-ranking, extends to answer-level RAG evaluation and failure analysis, and finally introduces adaptive query-level strategy selection for RAG systems.
+The project is organized as a multi-day portfolio. It starts from basic retrieval methods, then moves to retrieval evaluation and re-ranking, extends to answer-level RAG evaluation and failure analysis, introduces adaptive query-level strategy selection, and finally frames RAG strategy selection as a cost-aware query optimization problem.
 
 ---
 
@@ -47,16 +47,26 @@ retrieval-rag-evaluation/
 │   └── notes/
 │       └── day7_rag_diagnosis_notes.md
 │
-└── day8_adaptive_rag/
+├── day8_adaptive_rag/
+│   ├── README.md
+│   ├── src/
+│   │   └── adaptive_rag_demo.py
+│   ├── results/
+│   │   ├── adaptive_rag_results.csv
+│   │   ├── strategy_comparison_results.csv
+│   │   └── failure_type_summary.csv
+│   └── notes/
+│       └── day8_adaptive_rag_notes.md
+│
+└── day9_cost_aware_rag/
     ├── README.md
     ├── src/
-    │   └── adaptive_rag_demo.py
+    │   └── cost_aware_rag_demo.py
     ├── results/
-    │   ├── adaptive_rag_results.csv
-    │   ├── strategy_comparison_results.csv
-    │   └── failure_type_summary.csv
+    │   ├── cost_aware_rag_results.csv
+    │   └── strategy_decision_log.csv
     └── notes/
-        └── day8_adaptive_rag_notes.md
+        └── day9_cost_aware_rag_notes.md
 ```
 
 ---
@@ -255,6 +265,100 @@ day8_adaptive_rag/
 
 ---
 
+## Day 9 - Cost-Aware RAG Query Optimizer
+
+Day 9 extends adaptive strategy routing into a cost-aware RAG query optimizer.
+
+Instead of choosing a strategy only from query type, the system treats different RAG strategies as alternative execution plans and selects the plan with the highest estimated utility.
+
+Pipeline:
+
+```text
+query
+→ retrieval
+→ evidence strength estimation
+→ ranking ambiguity estimation
+→ query difficulty estimation
+→ utility estimation for candidate strategies
+→ cost-aware strategy selection
+→ answer generation or abstention
+→ evaluation
+```
+
+Topics:
+
+- Cost-aware RAG strategy selection
+- Evidence strength estimation
+- Ranking ambiguity estimation
+- Query difficulty estimation
+- Utility-based strategy optimization
+- Execution cost
+- Hallucination risk
+- Baseline RAG as a low-cost plan
+- Evidence-first RAG as a moderate-cost plan
+- Reranking RAG as a high-cost plan for ambiguous rankings
+- Abstention RAG as a low-risk plan for weak evidence
+- Database query optimizer analogy
+
+Implemented strategies:
+
+| Strategy | Role |
+|---|---|
+| `baseline_rag` | Cheapest plan for simple queries with clear evidence |
+| `evidence_first_rag` | Moderate-cost plan for strong but slightly more complex evidence |
+| `reranking_rag` | Higher-cost plan for ambiguous candidate rankings |
+| `abstention_rag` | Conservative plan for weak or unsupported evidence |
+
+Implemented optimizer signals:
+
+| Signal | Meaning |
+|---|---|
+| `evidence_strength` | Estimated strength of the retrieved evidence |
+| `ranking_ambiguity` | Estimated uncertainty between top candidate documents |
+| `query_difficulty` | Rough difficulty category of the query |
+| `estimated_cost` | Approximate execution cost of a strategy |
+| `hallucination_risk` | Estimated risk of unsupported generation |
+| `utility` | Final score used for strategy selection |
+
+Main utility rule:
+
+```text
+utility = estimated_quality - cost_penalty - risk_penalty
+```
+
+Current main results:
+
+| Query | Difficulty | Evidence Strength | Ranking Ambiguity | Chosen Strategy | Quality Score |
+|---|---|---:|---:|---|---:|
+| What does BM25 rely on? | easy | 0.340 | 0.000 | `baseline_rag` | 1.0 |
+| Why is cross-encoder reranking expensive? | easy | 0.567 | 0.000 | `baseline_rag` | 1.0 |
+| What should RAG systems evaluate? | easy | 0.660 | 0.000 | `baseline_rag` | 1.0 |
+| How does abstention help RAG reliability? | medium | 0.167 | 1.000 | `abstention_rag` | 0.2 |
+| How is Adaptive RAG related to query optimization? | easy | 0.337 | 0.375 | `baseline_rag` | 1.0 |
+| Which method improves ranking after retrieval when candidate documents are ambiguous? | medium | 0.664 | 0.091 | `evidence_first_rag` | 1.0 |
+| What is the best GPU for training huge models? | medium | 0.200 | 0.444 | `abstention_rag` | 1.0 |
+
+Main idea:
+
+A reliable RAG system should not always choose the strongest or most expensive strategy. It should choose the lowest-cost strategy that is reliable enough for the current query.
+
+Day 9 shows that:
+
+- Simple and clear queries should use `baseline_rag`.
+- Strong but slightly more complex evidence can use `evidence_first_rag`.
+- Weak or unsupported evidence should use `abstention_rag`.
+- Reranking should only be used when ranking ambiguity is high enough to justify the extra cost.
+
+The current run did not select `reranking_rag` because the toy corpus did not create a true ranking ambiguity case. This is consistent with cost-aware optimization: expensive reranking should be avoided when cheaper strategies already produce correct answers.
+
+Folder:
+
+```text
+day9_cost_aware_rag/
+```
+
+---
+
 ## Learning Path
 
 ```text
@@ -263,6 +367,7 @@ Day 5: Evaluate and improve retrieval ranking
 Day 6: Evaluate RAG answers and analyze failures
 Day 7: Diagnose RAG failures and compare response strategies
 Day 8: Route queries adaptively to suitable RAG strategies
+Day 9: Optimize RAG strategy selection using cost, evidence, and risk signals
 ```
 
 The project follows this progression:
@@ -277,6 +382,8 @@ RAG Answer Evaluation and Failure Analysis
 Diagnosis-Driven RAG Strategy Comparison
         ↓
 Adaptive RAG Strategy Routing
+        ↓
+Cost-Aware RAG Query Optimization
 ```
 
 ---
@@ -298,8 +405,10 @@ A reliable RAG system must satisfy all of the following:
 5. Ensure that the answer is faithful to the retrieved documents
 6. Decide when not to answer
 7. Select an appropriate strategy based on query type and evidence risk
+8. Estimate the cost and risk of alternative RAG execution plans
+9. Choose the lowest-cost strategy that is reliable enough for the current query
 
-Therefore, RAG evaluation should include both retrieval-level and answer-level evaluation, and reliable RAG systems should include query-level diagnosis and adaptive strategy routing.
+Therefore, RAG evaluation should include both retrieval-level and answer-level evaluation, and reliable RAG systems should include query-level diagnosis, adaptive strategy routing, and cost-aware strategy optimization.
 
 ---
 
@@ -311,12 +420,13 @@ Therefore, RAG evaluation should include both retrieval-level and answer-level e
 | Dense retrieval | Sentence embeddings, cosine similarity |
 | Hybrid retrieval | BM25 + dense score fusion |
 | Retrieval evaluation | Recall@k, Precision@k, MRR, nDCG@k |
-| Re-ranking | Cross-Encoder re-ranking |
+| Re-ranking | Cross-Encoder re-ranking, reranking failure analysis |
 | RAG evaluation | Answer correctness, faithfulness, citation relevance |
-| Failure analysis | Retrieval failure, generation failure, context selection failure, hallucination, unsupported answer |
+| Failure analysis | Retrieval failure, generation failure, context selection failure, hallucination, unsupported answer, over-conservative abstention |
 | Strategy comparison | Baseline RAG, Evidence-First RAG, Abstention RAG |
 | Adaptive RAG | Query diagnosis, strategy routing, selective abstention |
-| Database systems connection | Query optimizer analogy, strategy selection as execution planning |
+| Cost-aware RAG | Evidence strength, ranking ambiguity, query difficulty, cost estimation, hallucination risk, utility-based strategy selection |
+| Database systems connection | Query optimizer analogy, strategy selection as execution planning, cost-aware plan selection |
 
 ---
 
@@ -330,14 +440,22 @@ The current research framing is:
 RAG as adaptive query processing:
 query diagnosis
 → retrieval confidence estimation
-→ strategy routing
+→ ranking ambiguity estimation
+→ cost and risk estimation
+→ strategy optimization
 → evidence-aware generation or abstention
 → failure-aware evaluation
 ```
 
 From a database systems perspective, retrieval, re-ranking, evidence selection, generation, verification, and abstention can be treated as alternative execution strategies.
 
-A future system could choose among these strategies based on query type, evidence availability, confidence, cost, and risk.
+A future system could choose among these strategies based on query type, evidence availability, ranking ambiguity, confidence, cost, and risk.
+
+The current research insight is:
+
+```text
+Reliable RAG requires not only better retrieval and generation, but also a query optimizer that decides which strategy is worth using under cost, evidence, and risk constraints.
+```
 
 ---
 
@@ -358,3 +476,5 @@ Some scripts use sentence-transformers models and may download model files on fi
 This repository is intended as a research preparation portfolio. The experiments are intentionally small and interpretable so that each retrieval and RAG evaluation concept can be inspected directly.
 
 The Day 8 Adaptive RAG result should be interpreted as a proof-of-concept demonstration rather than a general benchmark result. The corpus is small, the router is rule-based, and the evaluation is simplified. The value of the experiment is to demonstrate the system design principle of query-level routing and failure-aware strategy selection.
+
+The Day 9 Cost-Aware RAG result should also be interpreted as a proof-of-concept demonstration. The corpus is small, the retriever is lexical and simplified, the utility model is manually designed, and the cost/risk estimates are heuristic. The value of the experiment is to show how RAG strategy selection can be framed as a database-style query optimization problem.

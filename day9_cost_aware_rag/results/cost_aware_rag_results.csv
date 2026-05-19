@@ -1,0 +1,8 @@
+query,gold_doc,chosen_strategy,cited_doc,answer,evidence_strength,ranking_ambiguity,query_difficulty,utility,citation_relevance,answer_keyword_score,faithfulness,quality_score,estimated_cost,hallucination_risk
+What does BM25 rely on?,doc1,baseline_rag,doc1,BM25 is a sparse retrieval method based on exact term matching.,0.34,0.0,easy,0.682,1.0,1.0,1.0,1.0,1.0,0.25
+Why is cross-encoder reranking expensive?,doc4,baseline_rag,doc4,A cross-encoder reranker scores query-document pairs more accurately but is more expensive.,0.567,0.0,easy,0.682,1.0,1.0,1.0,1.0,1.0,0.25
+What should RAG systems evaluate?,doc5,baseline_rag,doc5,"RAG systems should evaluate retrieval quality, answer correctness, faithfulness, and citation relevance.",0.66,0.0,easy,0.682,1.0,1.0,1.0,1.0,1.0,0.25
+How does abstention help RAG reliability?,doc6,abstention_rag,,I do not have enough reliable evidence to answer.,0.167,1.0,medium,0.76,0.0,0.0,1.0,0.2,1.1,0.05
+How is Adaptive RAG related to query optimization?,doc8,baseline_rag,doc8,Adaptive RAG chooses different retrieval and generation strategies based on query type and evidence quality.,0.337,0.375,easy,0.682,1.0,1.0,1.0,1.0,1.0,0.25
+Which method improves ranking after retrieval when candidate documents are ambiguous?,doc9,evidence_first_rag,doc9,Reranking improves document ranking after first-stage retrieval when candidate scores are ambiguous.,0.664,0.091,medium,0.558,1.0,1.0,1.0,1.0,1.3,0.15
+What is the best GPU for training huge models?,,abstention_rag,,I do not have enough reliable evidence to answer.,0.2,0.444,medium,0.76,1.0,1.0,1.0,1.0,1.1,0.05
