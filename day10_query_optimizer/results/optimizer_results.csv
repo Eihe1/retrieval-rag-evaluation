@@ -1,0 +1,13 @@
+query,intent,query_type,difficulty,evidence_strength,ranking_ambiguity,structured_signal,content_failure_signal,answer_risk_signal,selected_plan,selected_plan_type,selected_quality,selected_cost,selected_utility
+What does BM25 rely on?,fact_lookup,fact_lookup,0.3,0.9,0.2,0.0,0.0,0.0,Direct Retrieval,text,0.825,1.19,0.706
+Compare BM25 and dense retrieval under low lexical overlap.,comparison,comparison,0.75,0.7,0.65,0.0,0.0,0.0,Hybrid + Rerank,text,0.998,3.55,0.643
+Why can reranking fail when relevant documents are missed by first-stage retrieval?,failure_explanation,multi_hop_reasoning,0.8,0.7,0.55,0.0,1.0,0.0,Hybrid + Rerank,text,0.997,3.515,0.646
+Which strategy should be used when evidence is weak and ranking ambiguity is high?,strategy_reasoning,policy_reasoning,0.9,0.7,0.65,0.0,0.0,1.0,Hybrid + Rerank,text,0.983,3.595,0.623
+Which product had the highest sales increase compared with the previous quarter?,structured_aggregation,structured_reasoning,0.8,0.65,0.55,1.0,0.0,0.0,SQL Query,structured,1.0,3.46,0.654
+How many documents have unsupported answers?,counting,structured_reasoning,0.65,0.75,0.35,0.7,0.0,1.0,SQL Query,structured,1.0,3.19,0.681
+Number of failed retrieval cases,counting,structured_reasoning,0.65,0.75,0.35,0.7,0.5,0.0,SQL Query,structured,1.0,3.19,0.681
+Count of hallucinated responses,counting,structured_reasoning,0.65,0.75,0.35,0.7,0.0,0.0,SQL Query,structured,1.0,3.19,0.681
+Total number of queries with low faithfulness,counting,structured_reasoning,0.75,0.75,0.35,1.0,0.0,0.0,SQL Query,structured,1.0,3.45,0.655
+Average nDCG across all test queries,structured_aggregation,structured_reasoning,0.9,0.65,0.55,0.8,0.0,0.0,SQL Query,structured,1.0,3.32,0.668
+Top 3 strategies by utility,structured_aggregation,structured_reasoning,0.9,0.65,0.55,0.8,0.0,0.0,SQL Query,structured,1.0,3.32,0.668
+Which method has the lowest cost?,strategy_reasoning,policy_reasoning,0.9,0.7,0.65,0.0,0.0,0.0,Hybrid + Rerank,text,0.983,3.595,0.623

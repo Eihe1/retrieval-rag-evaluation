@@ -1,8 +1,8 @@
 # Retrieval and RAG Evaluation Portfolio
 
-This repository documents a research-oriented learning project on retrieval systems, retrieval evaluation, re-ranking, RAG evaluation, failure analysis, adaptive RAG strategy routing, and cost-aware RAG query optimization.
+This repository documents a research-oriented learning project on retrieval systems, retrieval evaluation, re-ranking, RAG evaluation, failure analysis, adaptive RAG strategy routing, cost-aware RAG query optimization, and intent-aware RAG execution planning.
 
-The project is organized as a multi-day portfolio. It starts from basic retrieval methods, then moves to retrieval evaluation and re-ranking, extends to answer-level RAG evaluation and failure analysis, introduces adaptive query-level strategy selection, and finally frames RAG strategy selection as a cost-aware query optimization problem.
+The project is organized as a multi-day portfolio. It starts from basic retrieval methods, then moves to retrieval evaluation and re-ranking, extends to answer-level RAG evaluation and failure analysis, introduces adaptive query-level strategy selection, and finally frames RAG strategy selection as a cost-aware and intent-aware query optimization problem.
 
 ---
 
@@ -58,15 +58,24 @@ retrieval-rag-evaluation/
 │   └── notes/
 │       └── day8_adaptive_rag_notes.md
 │
-└── day9_cost_aware_rag/
+├── day9_cost_aware_rag/
+│   ├── README.md
+│   ├── src/
+│   │   └── cost_aware_rag_demo.py
+│   ├── results/
+│   │   ├── cost_aware_rag_results.csv
+│   │   └── strategy_decision_log.csv
+│   └── notes/
+│       └── day9_cost_aware_rag_notes.md
+│
+└── day10_query_optimizer/
     ├── README.md
     ├── src/
-    │   └── cost_aware_rag_demo.py
+    │   └── query_optimizer_demo.py
     ├── results/
-    │   ├── cost_aware_rag_results.csv
-    │   └── strategy_decision_log.csv
+    │   └── optimizer_results.csv
     └── notes/
-        └── day9_cost_aware_rag_notes.md
+        └── day10_query_optimizer_notes.md
 ```
 
 ---
@@ -426,13 +435,14 @@ Therefore, RAG evaluation should include both retrieval-level and answer-level e
 | Strategy comparison | Baseline RAG, Evidence-First RAG, Abstention RAG |
 | Adaptive RAG | Query diagnosis, strategy routing, selective abstention |
 | Cost-aware RAG | Evidence strength, ranking ambiguity, query difficulty, cost estimation, hallucination risk, utility-based strategy selection |
-| Database systems connection | Query optimizer analogy, strategy selection as execution planning, cost-aware plan selection |
+| Intent-aware query optimization | Intent detection, structured query routing, risk separation, plan calibration, utility-based execution plan selection |
+| Database systems connection | Query optimizer analogy, strategy selection as execution planning, cost-aware and intent-aware plan selection |
 
 ---
 
 ## Research Direction
 
-This repository is moving toward a research direction on diagnosis-driven, adaptive, and cost-aware optimization for multi-stage RAG systems.
+This repository is moving toward a research direction on diagnosis-driven, adaptive, cost-aware, and intent-aware optimization for multi-stage RAG systems.
 
 The current research framing is:
 
@@ -442,19 +452,20 @@ query diagnosis
 → retrieval confidence estimation
 → ranking ambiguity estimation
 → cost and risk estimation
+→ intent-aware execution planning
 → strategy optimization
 → evidence-aware generation or abstention
 → failure-aware evaluation
 ```
 
-From a database systems perspective, retrieval, re-ranking, evidence selection, generation, verification, and abstention can be treated as alternative execution strategies.
+From a database systems perspective, direct retrieval, hybrid retrieval, re-ranking, SQL-style structured querying, evidence selection, generation, verification, and abstention can be treated as alternative execution strategies.
 
-A future system could choose among these strategies based on query type, evidence availability, ranking ambiguity, confidence, cost, and risk.
+A future system could choose among these strategies based on query intent, evidence availability, ranking ambiguity, confidence, cost, structured-query signals, and risk.
 
 The current research insight is:
 
 ```text
-Reliable RAG requires not only better retrieval and generation, but also a query optimizer that decides which strategy is worth using under cost, evidence, and risk constraints.
+Reliable RAG requires not only better retrieval and generation, but also a query optimizer that decides which strategy is worth using under intent, cost, evidence, and risk constraints.
 ```
 
 ---
@@ -478,3 +489,74 @@ This repository is intended as a research preparation portfolio. The experiments
 The Day 8 Adaptive RAG result should be interpreted as a proof-of-concept demonstration rather than a general benchmark result. The corpus is small, the router is rule-based, and the evaluation is simplified. The value of the experiment is to demonstrate the system design principle of query-level routing and failure-aware strategy selection.
 
 The Day 9 Cost-Aware RAG result should also be interpreted as a proof-of-concept demonstration. The corpus is small, the retriever is lexical and simplified, the utility model is manually designed, and the cost/risk estimates are heuristic. The value of the experiment is to show how RAG strategy selection can be framed as a database-style query optimization problem.
+
+The Day 10 Intent-Aware Query Optimizer result extends this idea by adding explicit intent detection and plan calibration. It shows how RAG execution can be routed among direct retrieval, hybrid retrieval, reranking, SQL-style structured querying, and abstention. The optimizer remains heuristic, but it provides a clearer blueprint for a future self-calibrating or learned query optimizer.
+
+---
+
+## Day 10 - Intent-Aware Query Optimizer for RAG Systems
+
+Day 10 extends the cost-aware optimizer from Day 9 into a more explicit database-style query optimizer for RAG execution planning.
+
+Topics:
+
+- Candidate execution plans
+- Utility-based plan selection
+- Query feature extraction
+- Intent detection
+- Structured query routing
+- Risk separation
+- Plan calibration
+- Direct retrieval vs hybrid retrieval vs reranking vs SQL query vs abstention
+
+Candidate plans:
+
+| Plan | Purpose |
+|---|---|
+| Direct Retrieval | Cheap execution for simple fact lookup |
+| Hybrid Retrieval | More robust retrieval for moderate query complexity |
+| Hybrid + Rerank | Higher-quality execution for comparison, reasoning, and failure explanation |
+| SQL Query | Structured execution for counting, aggregation, ranking, and metric queries |
+| Abstain | Conservative response for genuinely risky or unsupported queries |
+
+The final optimizer pipeline:
+
+```text
+query
+→ intent detection
+→ feature extraction
+→ quality prediction
+→ cost prediction
+→ utility calculation
+→ plan selection
+```
+
+Supported intents:
+
+- `fact_lookup`
+- `comparison`
+- `failure_explanation`
+- `counting`
+- `structured_aggregation`
+- `strategy_reasoning`
+
+Main idea:
+
+RAG execution should not be fixed. Different queries should use different execution plans. Simple fact queries can use direct retrieval, comparison and failure-explanation queries can use hybrid retrieval with reranking, and structured analytical queries can be routed to SQL-style execution.
+
+Final behavior:
+
+| Query Type | Example | Selected Plan |
+|---|---|---|
+| Fact lookup | What does BM25 rely on? | Direct Retrieval |
+| Comparison | Compare BM25 and dense retrieval under low lexical overlap. | Hybrid + Rerank |
+| Failure explanation | Why can reranking fail when relevant documents are missed? | Hybrid + Rerank |
+| Strategy reasoning | Which strategy should be used when evidence is weak and ranking ambiguity is high? | Hybrid + Rerank |
+| Counting | How many documents have unsupported answers? | SQL Query |
+| Aggregation | Average nDCG across all test queries | SQL Query |
+
+Folder:
+
+```text
+day10_query_optimizer/
+```
