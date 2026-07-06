@@ -2,20 +2,46 @@
 
 ## Overview
 
-Traditional RAG systems usually follow a fixed execution pipeline:
+Traditional RAG systems often follow a fixed execution pipeline:
 
+```text
 Query
 → Retrieval
-→ Reranking
+→ Re-ranking
 → Generation
+```
 
-However, not every query requires the same retrieval strategy.
+However, not every query requires the same retrieval or answer strategy.
 
-Simple factual questions may only require direct retrieval, while comparison questions often benefit from reranking. Structured analytical questions may be better answered using database-style aggregation rather than text retrieval.
+Simple factual questions may only require direct retrieval. Comparison questions may benefit from hybrid retrieval and re-ranking. Structured analytical questions may be better answered using database-style aggregation rather than free-text retrieval. Unsupported or ambiguous queries may require abstention.
 
 This project explores the idea of treating RAG execution as a lightweight query optimization problem inspired by database management systems.
 
 The optimizer analyzes a user query, estimates the expected quality and execution cost of multiple candidate plans, computes utilities, and selects the plan with the highest utility.
+
+The current optimizer is rule-based and heuristic. It is designed for interpretability and research preparation, not production deployment.
+
+---
+
+## Implementation Scope
+
+This folder integrates earlier prototype components:
+
+- BM25-style lexical retrieval
+- Lightweight semantic-proxy retrieval
+- Hybrid scoring
+- Heuristic second-stage re-ranking
+- RAG answer evaluation
+- Failure diagnosis
+- Adaptive RAG strategy routing
+- Cost-aware strategy selection
+- Intent-aware execution planning
+
+The semantic retrieval component should be understood as a lightweight proxy signal rather than a production embedding-based dense retriever.
+
+The re-ranking component should be understood as a heuristic re-ranker rather than a neural Cross-Encoder.
+
+The SQL Query plan is a conceptual and prototype-level structured execution path for counting, aggregation, ranking, and metric-style questions. It is not a full production database-backed RAG engine.
 
 ---
 
@@ -23,31 +49,38 @@ The optimizer analyzes a user query, estimates the expected quality and executio
 
 The project was motivated by an observation made during previous RAG evaluation experiments.
 
-Throughout Days 4–9, several retrieval pipelines were implemented and evaluated:
+Throughout Days 4–9, several retrieval and RAG strategies were implemented or studied:
 
-- BM25 Retrieval
-- Dense Retrieval
-- Hybrid Retrieval
-- Cross-Encoder Reranking
+- BM25-style retrieval
+- Lightweight semantic-proxy retrieval
+- Hybrid retrieval
+- Heuristic re-ranking
 - Evidence-First RAG
 - Abstention RAG
 - Adaptive RAG
+- Cost-aware strategy selection
 
-A key finding was that different queries often require different retrieval strategies.
+A key finding was that different queries often require different strategies.
 
-Examples:
+---
 
 ### Simple Fact Lookup
 
 Query:
 
+```text
 What does BM25 rely on?
+```
 
 Desired strategy:
 
+```text
 Direct Retrieval
+```
 
-because retrieval is easy and evidence is obvious.
+Reason:
+
+The query is simple and the evidence is direct.
 
 ---
 
@@ -55,13 +88,19 @@ because retrieval is easy and evidence is obvious.
 
 Query:
 
-Compare BM25 and Dense Retrieval.
+```text
+Compare BM25-style retrieval and semantic-proxy retrieval.
+```
 
 Desired strategy:
 
-Hybrid Retrieval + Reranking
+```text
+Hybrid Retrieval + Re-ranking
+```
 
-because information must be collected from multiple sources.
+Reason:
+
+The answer may require information from multiple pieces of evidence and stronger ranking quality.
 
 ---
 
@@ -69,17 +108,23 @@ because information must be collected from multiple sources.
 
 Query:
 
-Which product had the highest sales increase compared with the previous quarter?
+```text
+Average nDCG across all test queries.
+```
 
 Desired strategy:
 
-SQL-style aggregation
+```text
+SQL Query
+```
 
-rather than free-text retrieval.
+Reason:
+
+The query is metric-oriented and is better handled through structured aggregation than free-text retrieval.
 
 ---
 
-These observations suggested that RAG pipelines could benefit from database-style optimization.
+These observations suggest that RAG pipelines can benefit from database-style optimization.
 
 ---
 
@@ -87,6 +132,7 @@ These observations suggested that RAG pipelines could benefit from database-styl
 
 The final optimizer follows the pipeline:
 
+```text
 Query
 ↓
 Intent Detection
@@ -102,6 +148,7 @@ Cost Prediction
 Utility Calculation
 ↓
 Plan Selection
+```
 
 ---
 
@@ -111,12 +158,13 @@ The optimizer currently supports five execution plans.
 
 ### Direct Retrieval
 
-Single-stage retrieval without reranking.
+Single-stage retrieval without re-ranking.
 
 Advantages:
 
 - Lowest cost
 - Fast execution
+- Suitable for simple factual lookup
 
 Disadvantages:
 
@@ -131,27 +179,30 @@ Combines multiple retrieval signals.
 
 Advantages:
 
-- More robust retrieval
-- Better coverage
+- More robust than relying on one retrieval signal
+- Useful when lexical and semantic-proxy signals are complementary
 
 Disadvantages:
 
-- Higher retrieval cost
+- Higher retrieval cost than direct retrieval
+- Still limited by first-stage candidate quality
 
 ---
 
 ### Hybrid + Rerank
 
-Hybrid retrieval followed by reranking.
+Hybrid retrieval followed by heuristic re-ranking.
 
 Advantages:
 
-- Highest answer quality
-- Strong comparison and reasoning support
+- Useful for comparison, reasoning, and failure-explanation queries
+- Can improve ranking quality when relevant candidates are already retrieved
 
 Disadvantages:
 
-- Highest execution cost
+- Higher execution cost
+- Cannot recover relevant documents missed by first-stage retrieval
+- Current version uses heuristic re-ranking, not a neural Cross-Encoder
 
 ---
 
@@ -163,21 +214,23 @@ Advantages:
 
 - Exact counting
 - Aggregation support
-- Ranking support
+- Ranking and metric-style query support
 
 Disadvantages:
 
 - Only suitable for structured questions
+- Requires structured data or logged evaluation results
 
 ---
 
 ### Abstain
 
-Refuses to answer when confidence is low.
+Refuses to answer when confidence or evidence is insufficient.
 
 Advantages:
 
 - Prevents unsupported answers
+- Reduces hallucination risk
 
 Disadvantages:
 
@@ -193,7 +246,7 @@ The system was gradually upgraded to include an intent layer.
 
 Supported intents:
 
-### fact_lookup
+### `fact_lookup`
 
 Examples:
 
@@ -202,24 +255,28 @@ Examples:
 
 Preferred plan:
 
+```text
 Direct Retrieval
+```
 
 ---
 
-### comparison
+### `comparison`
 
 Examples:
 
-- Compare BM25 and Dense Retrieval
-- Difference between DPR and ColBERT
+- Compare BM25-style retrieval and semantic-proxy retrieval.
+- What is the difference between lexical and semantic-proxy retrieval?
 
 Preferred plan:
 
+```text
 Hybrid + Rerank
+```
 
 ---
 
-### failure_explanation
+### `failure_explanation`
 
 Examples:
 
@@ -228,38 +285,44 @@ Examples:
 
 Preferred plan:
 
+```text
 Hybrid + Rerank
+```
 
 ---
 
-### counting
+### `counting`
 
 Examples:
 
 - How many failed queries exist?
-- Number of unsupported answers
+- Number of unsupported answers.
 
 Preferred plan:
 
+```text
 SQL Query
+```
 
 ---
 
-### structured_aggregation
+### `structured_aggregation`
 
 Examples:
 
-- Average nDCG
-- Highest sales increase
-- Lowest latency
+- Average nDCG.
+- Highest score.
+- Lowest failure rate.
 
 Preferred plan:
 
+```text
 SQL Query
+```
 
 ---
 
-### strategy_reasoning
+### `strategy_reasoning`
 
 Examples:
 
@@ -268,7 +331,46 @@ Examples:
 
 Preferred plan:
 
+```text
 Hybrid + Rerank
+```
+
+---
+
+## Optimizer Signals
+
+The optimizer uses interpretable heuristic signals.
+
+| Signal | Meaning |
+|---|---|
+| Query intent | The broad type of the user query |
+| Query difficulty | Whether the query is simple, multi-part, or reasoning-heavy |
+| Evidence strength | Whether retrieved evidence appears strong enough to support an answer |
+| Ranking ambiguity | Whether top retrieved candidates are clearly separated or close in score |
+| Content failure signal | Whether the query discusses failure or risk as a topic |
+| Answer risk signal | Whether the answer itself is likely to be unsupported |
+| Estimated quality | Predicted quality of a candidate plan |
+| Estimated cost | Relative cost of a candidate plan |
+| Utility | Final score used for plan selection |
+
+---
+
+## Utility Calculation
+
+The simplified utility form is:
+
+```text
+utility = estimated_quality - cost_penalty - risk_penalty
+```
+
+The optimizer selects the plan with the highest utility.
+
+This mirrors the database optimizer idea:
+
+```text
+A system should not always choose the strongest plan.
+It should choose the cheapest plan that is reliable enough for the current query.
+```
 
 ---
 
@@ -278,9 +380,11 @@ Hybrid + Rerank
 
 Static utility model.
 
+```text
 Query
 → Utility Calculation
 → Plan Selection
+```
 
 Limitation:
 
@@ -295,8 +399,8 @@ Query feature extraction.
 Added:
 
 - Difficulty
-- Evidence Strength
-- Ranking Ambiguity
+- Evidence strength
+- Ranking ambiguity
 
 Improvement:
 
@@ -314,18 +418,22 @@ Queries discussing failure mechanisms were incorrectly classified as unsafe.
 
 Example:
 
+```text
 Why can reranking fail?
+```
 
-Incorrect:
+Incorrect result:
 
+```text
 Abstain
+```
 
 Improvement:
 
 Risk was separated into:
 
-- Content Failure Signal
-- Answer Risk Signal
+- Content failure signal
+- Answer risk signal
 
 Result:
 
@@ -339,11 +447,11 @@ Intent-aware optimizer.
 
 Added:
 
-- Fact Lookup
+- Fact lookup
 - Comparison
 - Counting
 - Aggregation
-- Failure Explanation
+- Failure explanation
 
 Improvement:
 
@@ -370,7 +478,7 @@ Solutions:
 
 Result:
 
-Plan selection became significantly more realistic.
+Plan selection became more realistic and interpretable.
 
 ---
 
@@ -380,11 +488,15 @@ Plan selection became significantly more realistic.
 
 Query:
 
+```text
 What does BM25 rely on?
+```
 
 Selected Plan:
 
+```text
 Direct Retrieval
+```
 
 ---
 
@@ -392,11 +504,15 @@ Direct Retrieval
 
 Query:
 
-Compare BM25 and Dense Retrieval.
+```text
+Compare BM25-style retrieval and semantic-proxy retrieval.
+```
 
 Selected Plan:
 
+```text
 Hybrid + Rerank
+```
 
 ---
 
@@ -404,11 +520,15 @@ Hybrid + Rerank
 
 Query:
 
+```text
 Why can reranking fail when relevant documents are missed?
+```
 
 Selected Plan:
 
+```text
 Hybrid + Rerank
+```
 
 ---
 
@@ -416,11 +536,15 @@ Hybrid + Rerank
 
 Query:
 
+```text
 Average nDCG across all test queries.
+```
 
 Selected Plan:
 
+```text
 SQL Query
+```
 
 ---
 
@@ -428,11 +552,15 @@ SQL Query
 
 Query:
 
+```text
 Which strategy should be used when evidence is weak and ranking ambiguity is high?
+```
 
 Selected Plan:
 
+```text
 Hybrid + Rerank
+```
 
 ---
 
@@ -440,12 +568,15 @@ Hybrid + Rerank
 
 The most important insight from this project is:
 
+```text
 RAG execution can be viewed as a query optimization problem.
+```
 
 Instead of always executing the same retrieval pipeline, systems can estimate:
 
 - expected quality
 - expected cost
+- expected risk
 - expected utility
 
 and choose the most suitable plan.
@@ -454,15 +585,36 @@ This perspective closely mirrors traditional database query optimization.
 
 ---
 
+## Limitations
+
+Current limitations:
+
+- Small toy corpus
+- Rule-based query planner
+- Heuristic query feature extraction
+- Heuristic evidence strength estimation
+- Heuristic ranking ambiguity estimation
+- Lightweight semantic-proxy retrieval instead of production dense retrieval
+- Heuristic re-ranking instead of neural Cross-Encoder re-ranking
+- Prototype SQL-style routing rather than a full database-backed RAG system
+- Simplified evaluation metrics
+- No learned optimizer
+
+---
+
 ## Future Work
 
 Current optimizer:
 
+```text
 Rule-based Query Planner
+```
 
 Future direction:
 
+```text
 Self-Calibrating Query Optimizer
+```
 
 Potential extensions:
 
@@ -473,10 +625,14 @@ Potential extensions:
 - Learned cost models
 - Learned quality models
 - Intent classification using ML models
+- Embedding-based dense retrieval
+- Neural Cross-Encoder or reranker model
+- pgvector-backed vector retrieval
 - Retrieval strategy learning
 
 Ultimate goal:
 
+```text
 Query
 ↓
 Learned Optimizer
@@ -486,5 +642,16 @@ Execution Plan
 Feedback
 ↓
 Continuous Improvement
+```
 
-similar to modern database optimizers.
+This would move the prototype closer to modern database optimizers that learn from execution feedback.
+
+---
+
+## Summary
+
+Day 10 builds a query-aware and intent-aware RAG optimizer prototype.
+
+The main contribution is the framing of RAG as a query optimization problem. Different retrieval and answer strategies are treated as execution plans, and the optimizer selects among them using interpretable signals such as intent, evidence strength, ranking ambiguity, query difficulty, estimated cost, and answer risk.
+
+The result is not a production RAG system. It is a clear and reproducible prototype for studying how RAG pipelines can diagnose failures and choose strategies more intelligently.

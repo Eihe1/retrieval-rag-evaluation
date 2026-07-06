@@ -1,8 +1,37 @@
 # Retrieval and RAG Evaluation Portfolio
 
-This repository documents a research-oriented learning project on retrieval systems, retrieval evaluation, re-ranking, RAG evaluation, failure analysis, adaptive RAG strategy routing, cost-aware RAG query optimization, and intent-aware RAG execution planning.
+This repository documents a research-oriented learning project on retrieval systems, retrieval evaluation, RAG answer evaluation, failure diagnosis, adaptive RAG strategy routing, cost-aware RAG query optimization, and intent-aware RAG execution planning.
 
 The project is organized as a multi-day portfolio. It starts from basic retrieval methods, then moves to retrieval evaluation and re-ranking, extends to answer-level RAG evaluation and failure analysis, introduces adaptive query-level strategy selection, and finally frames RAG strategy selection as a cost-aware and intent-aware query optimization problem.
+
+The experiments are intentionally small and interpretable. The current implementation should be understood as a research-preparation prototype, not as a production-grade RAG system.
+
+---
+
+## Implementation Scope
+
+This repository focuses on interpretable retrieval and RAG evaluation experiments.
+
+Current implementation includes:
+
+- BM25-style lexical retrieval
+- Lightweight semantic-proxy retrieval
+- Hybrid score fusion
+- Alpha sensitivity analysis
+- Heuristic second-stage re-ranking
+- RAG answer evaluation
+- Query-level failure diagnosis
+- Adaptive RAG strategy routing
+- Cost-aware RAG strategy selection
+- Intent-aware query optimization
+
+The semantic retrieval component is a lightweight proxy signal used for controlled analysis. It should not be interpreted as a production embedding-based dense retriever.
+
+The re-ranking component is a heuristic second-stage re-ranker. It is used to study ranking improvement and the recall ceiling problem. It should not be interpreted as neural Cross-Encoder re-ranking.
+
+PostgreSQL and pgvector are treated as database and vector-search background concepts. The current experimental pipeline is not a full PostgreSQL/pgvector-based RAG system.
+
+Faithfulness, citation relevance, unsupported-answer simulation, and failure diagnosis are simplified and interpretable proxy evaluations. They are not production-grade or NLI-based reliability metrics.
 
 ---
 
@@ -86,8 +115,8 @@ Day 4 focuses on basic retrieval methods and simple RAG-style context constructi
 
 Topics:
 
-- BM25 sparse retrieval
-- Dense retrieval with sentence-transformers
+- BM25-style lexical retrieval
+- Lightweight semantic-proxy retrieval
 - Hybrid retrieval
 - Stopword handling
 - Dynamic alpha intuition
@@ -96,7 +125,7 @@ Topics:
 
 Main idea:
 
-BM25 works well for exact keyword matching, while dense retrieval can capture semantic similarity. Hybrid retrieval combines sparse and dense signals. The top_k parameter controls the trade-off between recall and context noise.
+BM25-style retrieval works well for exact keyword matching, while the semantic-proxy signal provides a lightweight complementary matching signal. Hybrid retrieval combines lexical and semantic-proxy scores. The top_k parameter controls the trade-off between recall and context noise.
 
 Folder:
 
@@ -108,7 +137,7 @@ day4_retrieval_basics/
 
 ## Day 5 - Retrieval Evaluation and Re-ranking
 
-Day 5 focuses on evaluating retrieval quality and improving ranking with a second-stage re-ranker.
+Day 5 focuses on evaluating retrieval quality and improving ranking with a second-stage heuristic re-ranker.
 
 Topics:
 
@@ -116,9 +145,9 @@ Topics:
 - Precision@k
 - MRR
 - nDCG@k
-- BM25 vs Dense Retrieval vs Hybrid Retrieval
+- BM25-style retrieval vs semantic-proxy retrieval vs hybrid retrieval
 - Alpha sensitivity analysis
-- Cross-Encoder re-ranking
+- Heuristic second-stage re-ranking
 - Re-ranking failure case
 
 Main idea:
@@ -140,15 +169,15 @@ Day 6 extends retrieval evaluation into full RAG evaluation.
 Topics:
 
 - Answer keyword score
-- Faithfulness
+- Faithfulness proxy
 - Citation relevance
 - Failure type classification
 - Top-k sensitivity analysis
-- Hallucination simulation
+- Controlled unsupported-answer simulation
 
 Main idea:
 
-Retrieval success does not guarantee answer success. Even if the retriever finds the correct document, the answer generator may still select the wrong context, produce an incomplete answer, or hallucinate unsupported information.
+Retrieval success does not guarantee answer success. Even if the retriever finds the correct document, the answer generator may still select the wrong context, produce an incomplete answer, cite irrelevant evidence, or generate unsupported information.
 
 Folder:
 
@@ -167,9 +196,9 @@ Topics:
 - Baseline RAG
 - Evidence-First RAG
 - Abstention RAG
-- Faithfulness
+- Faithfulness proxy
 - Citation relevance
-- Hallucination or unfaithful answer
+- Unfaithful or unsupported answer
 - Citation failure
 - Ranking or context selection failure
 - Unsupported answer
@@ -181,7 +210,7 @@ Main idea:
 
 Retrieval success does not guarantee answer success. A RAG system may retrieve the correct document but still fail due to weak grounding, wrong evidence selection, incorrect citation, or unsupported generation.
 
-Different strategies optimize different objectives. Baseline RAG has higher coverage, evidence-first RAG improves faithfulness, and abstention RAG reduces unsupported answers but may become over-conservative.
+Different strategies optimize different objectives. Baseline RAG has higher coverage, Evidence-First RAG improves grounding behavior, and Abstention RAG reduces unsupported answers but may become over-conservative.
 
 Reliable RAG systems should diagnose the query-level failure mode before choosing whether to answer directly, select evidence first, verify citations, rewrite the query, re-rank documents, or abstain.
 
@@ -203,7 +232,7 @@ Pipeline:
 
 ```text
 query
-→ BM25 retrieval
+→ BM25-style retrieval
 → query diagnosis
 → strategy routing
 → answer generation or abstention
@@ -305,7 +334,7 @@ Topics:
 - Hallucination risk
 - Baseline RAG as a low-cost plan
 - Evidence-first RAG as a moderate-cost plan
-- Reranking RAG as a high-cost plan for ambiguous rankings
+- Heuristic reranking RAG as a higher-cost plan for ambiguous rankings
 - Abstention RAG as a low-risk plan for weak evidence
 - Database query optimizer analogy
 
@@ -340,7 +369,7 @@ Current main results:
 | Query | Difficulty | Evidence Strength | Ranking Ambiguity | Chosen Strategy | Quality Score |
 |---|---|---:|---:|---|---:|
 | What does BM25 rely on? | easy | 0.340 | 0.000 | `baseline_rag` | 1.0 |
-| Why is cross-encoder reranking expensive? | easy | 0.567 | 0.000 | `baseline_rag` | 1.0 |
+| Why is reranking expensive? | easy | 0.567 | 0.000 | `baseline_rag` | 1.0 |
 | What should RAG systems evaluate? | easy | 0.660 | 0.000 | `baseline_rag` | 1.0 |
 | How does abstention help RAG reliability? | medium | 0.167 | 1.000 | `abstention_rag` | 0.2 |
 | How is Adaptive RAG related to query optimization? | easy | 0.337 | 0.375 | `baseline_rag` | 1.0 |
@@ -368,6 +397,75 @@ day9_cost_aware_rag/
 
 ---
 
+## Day 10 - Intent-Aware Query Optimizer for RAG Systems
+
+Day 10 extends the cost-aware optimizer from Day 9 into a more explicit database-style query optimizer for RAG execution planning.
+
+Topics:
+
+- Candidate execution plans
+- Utility-based plan selection
+- Query feature extraction
+- Intent detection
+- Structured query routing
+- Risk separation
+- Plan calibration
+- Direct retrieval vs hybrid retrieval vs reranking vs SQL query vs abstention
+
+Candidate plans:
+
+| Plan | Purpose |
+|---|---|
+| Direct Retrieval | Cheap execution for simple fact lookup |
+| Hybrid Retrieval | More robust retrieval for moderate query complexity |
+| Hybrid + Rerank | Higher-cost execution for comparison, reasoning, and failure explanation |
+| SQL Query | Structured execution for counting, aggregation, ranking, and metric queries |
+| Abstain | Conservative response for genuinely risky or unsupported queries |
+
+The final optimizer pipeline:
+
+```text
+query
+→ intent detection
+→ feature extraction
+→ quality prediction
+→ cost prediction
+→ utility calculation
+→ plan selection
+```
+
+Supported intents:
+
+- `fact_lookup`
+- `comparison`
+- `failure_explanation`
+- `counting`
+- `structured_aggregation`
+- `strategy_reasoning`
+
+Main idea:
+
+RAG execution should not be fixed. Different queries should use different execution plans. Simple fact queries can use direct retrieval, comparison and failure-explanation queries can use hybrid retrieval with heuristic reranking, and structured analytical queries can be routed to SQL-style execution.
+
+Final behavior:
+
+| Query Type | Example | Selected Plan |
+|---|---|---|
+| Fact lookup | What does BM25 rely on? | Direct Retrieval |
+| Comparison | Compare BM25-style and semantic-proxy retrieval under low lexical overlap. | Hybrid + Rerank |
+| Failure explanation | Why can reranking fail when relevant documents are missed? | Hybrid + Rerank |
+| Strategy reasoning | Which strategy should be used when evidence is weak and ranking ambiguity is high? | Hybrid + Rerank |
+| Counting | How many documents have unsupported answers? | SQL Query |
+| Aggregation | Average nDCG across all test queries | SQL Query |
+
+Folder:
+
+```text
+day10_query_optimizer/
+```
+
+---
+
 ## Learning Path
 
 ```text
@@ -377,22 +475,25 @@ Day 6: Evaluate RAG answers and analyze failures
 Day 7: Diagnose RAG failures and compare response strategies
 Day 8: Route queries adaptively to suitable RAG strategies
 Day 9: Optimize RAG strategy selection using cost, evidence, and risk signals
+Day 10: Add intent-aware query optimization and plan calibration
 ```
 
 The project follows this progression:
 
 ```text
-BM25 / Dense / Hybrid Retrieval
+BM25-style / semantic-proxy / hybrid retrieval
         ↓
-Retrieval Metrics and Re-ranking
+Retrieval metrics and heuristic re-ranking
         ↓
-RAG Answer Evaluation and Failure Analysis
+RAG answer evaluation and failure analysis
         ↓
-Diagnosis-Driven RAG Strategy Comparison
+Diagnosis-driven RAG strategy comparison
         ↓
-Adaptive RAG Strategy Routing
+Adaptive RAG strategy routing
         ↓
-Cost-Aware RAG Query Optimization
+Cost-aware RAG query optimization
+        ↓
+Intent-aware RAG execution planning
 ```
 
 ---
@@ -411,7 +512,7 @@ A reliable RAG system must satisfy all of the following:
 2. Rank useful evidence highly
 3. Select the correct context
 4. Generate a correct answer
-5. Ensure that the answer is faithful to the retrieved documents
+5. Ensure that the answer is supported by the retrieved documents
 6. Decide when not to answer
 7. Select an appropriate strategy based on query type and evidence risk
 8. Estimate the cost and risk of alternative RAG execution plans
@@ -425,13 +526,13 @@ Therefore, RAG evaluation should include both retrieval-level and answer-level e
 
 | Area | Techniques |
 |---|---|
-| Sparse retrieval | BM25 |
-| Dense retrieval | Sentence embeddings, cosine similarity |
-| Hybrid retrieval | BM25 + dense score fusion |
+| Lexical retrieval | BM25-style retrieval |
+| Semantic-proxy retrieval | Lightweight interpretable semantic-proxy scoring |
+| Hybrid retrieval | BM25-style + semantic-proxy score fusion |
 | Retrieval evaluation | Recall@k, Precision@k, MRR, nDCG@k |
-| Re-ranking | Cross-Encoder re-ranking, reranking failure analysis |
-| RAG evaluation | Answer correctness, faithfulness, citation relevance |
-| Failure analysis | Retrieval failure, generation failure, context selection failure, hallucination, unsupported answer, over-conservative abstention |
+| Re-ranking | Heuristic second-stage re-ranking, reranking failure analysis |
+| RAG evaluation | Answer keyword score, faithfulness proxy, citation relevance |
+| Failure analysis | Retrieval failure, generation failure, context selection failure, unsupported answer, over-conservative abstention |
 | Strategy comparison | Baseline RAG, Evidence-First RAG, Abstention RAG |
 | Adaptive RAG | Query diagnosis, strategy routing, selective abstention |
 | Cost-aware RAG | Evidence strength, ranking ambiguity, query difficulty, cost estimation, hallucination risk, utility-based strategy selection |
@@ -478,7 +579,7 @@ Install dependencies with:
 pip install -r requirements.txt
 ```
 
-Some scripts use sentence-transformers models and may download model files on first run.
+The current prototype is designed to remain small and interpretable. If future embedding-based dense retrieval or neural reranking modules are added, their dependencies should be documented separately.
 
 ---
 
@@ -490,73 +591,4 @@ The Day 8 Adaptive RAG result should be interpreted as a proof-of-concept demons
 
 The Day 9 Cost-Aware RAG result should also be interpreted as a proof-of-concept demonstration. The corpus is small, the retriever is lexical and simplified, the utility model is manually designed, and the cost/risk estimates are heuristic. The value of the experiment is to show how RAG strategy selection can be framed as a database-style query optimization problem.
 
-The Day 10 Intent-Aware Query Optimizer result extends this idea by adding explicit intent detection and plan calibration. It shows how RAG execution can be routed among direct retrieval, hybrid retrieval, reranking, SQL-style structured querying, and abstention. The optimizer remains heuristic, but it provides a clearer blueprint for a future self-calibrating or learned query optimizer.
-
----
-
-## Day 10 - Intent-Aware Query Optimizer for RAG Systems
-
-Day 10 extends the cost-aware optimizer from Day 9 into a more explicit database-style query optimizer for RAG execution planning.
-
-Topics:
-
-- Candidate execution plans
-- Utility-based plan selection
-- Query feature extraction
-- Intent detection
-- Structured query routing
-- Risk separation
-- Plan calibration
-- Direct retrieval vs hybrid retrieval vs reranking vs SQL query vs abstention
-
-Candidate plans:
-
-| Plan | Purpose |
-|---|---|
-| Direct Retrieval | Cheap execution for simple fact lookup |
-| Hybrid Retrieval | More robust retrieval for moderate query complexity |
-| Hybrid + Rerank | Higher-quality execution for comparison, reasoning, and failure explanation |
-| SQL Query | Structured execution for counting, aggregation, ranking, and metric queries |
-| Abstain | Conservative response for genuinely risky or unsupported queries |
-
-The final optimizer pipeline:
-
-```text
-query
-→ intent detection
-→ feature extraction
-→ quality prediction
-→ cost prediction
-→ utility calculation
-→ plan selection
-```
-
-Supported intents:
-
-- `fact_lookup`
-- `comparison`
-- `failure_explanation`
-- `counting`
-- `structured_aggregation`
-- `strategy_reasoning`
-
-Main idea:
-
-RAG execution should not be fixed. Different queries should use different execution plans. Simple fact queries can use direct retrieval, comparison and failure-explanation queries can use hybrid retrieval with reranking, and structured analytical queries can be routed to SQL-style execution.
-
-Final behavior:
-
-| Query Type | Example | Selected Plan |
-|---|---|---|
-| Fact lookup | What does BM25 rely on? | Direct Retrieval |
-| Comparison | Compare BM25 and dense retrieval under low lexical overlap. | Hybrid + Rerank |
-| Failure explanation | Why can reranking fail when relevant documents are missed? | Hybrid + Rerank |
-| Strategy reasoning | Which strategy should be used when evidence is weak and ranking ambiguity is high? | Hybrid + Rerank |
-| Counting | How many documents have unsupported answers? | SQL Query |
-| Aggregation | Average nDCG across all test queries | SQL Query |
-
-Folder:
-
-```text
-day10_query_optimizer/
-```
+The Day 10 Intent-Aware Query Optimizer result extends this idea by adding explicit intent detection and plan calibration. It shows how RAG execution can be routed among direct retrieval, hybrid retrieval, heuristic reranking, SQL-style structured querying, and abstention. The optimizer remains heuristic, but it provides a clearer blueprint for a future self-calibrating or learned query optimizer.

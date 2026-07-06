@@ -1,8 +1,10 @@
-# Day 5 - Retrieval Evaluation and Re-ranking
+# Day 5 - Retrieval Evaluation and Heuristic Re-ranking
 
-This folder contains experiments on retrieval evaluation, hybrid retrieval sensitivity, and Cross-Encoder re-ranking.
+This folder contains experiments on retrieval evaluation, hybrid retrieval sensitivity, and heuristic second-stage re-ranking.
 
 The goal of Day 5 was to move from simply running retrieval methods to evaluating, comparing, and improving retrieval systems.
+
+The current implementation is intentionally small and interpretable. The re-ranking component is a heuristic baseline, not a neural Cross-Encoder re-ranker.
 
 ---
 
@@ -12,9 +14,9 @@ The goal of Day 5 was to move from simply running retrieval methods to evaluatin
 - Precision@k
 - MRR
 - nDCG@k
-- BM25 vs Dense Retrieval vs Hybrid Retrieval
+- BM25-style retrieval vs semantic-proxy retrieval vs hybrid retrieval
 - Alpha sensitivity analysis
-- Cross-Encoder re-ranking
+- Heuristic second-stage re-ranking
 - Re-ranking failure case
 
 ---
@@ -41,6 +43,18 @@ day5_retrieval_eval_reranking/
 
 ---
 
+## Implementation Scope
+
+This folder uses simplified retrieval and ranking components to study retrieval evaluation.
+
+The semantic retrieval component should be interpreted as a lightweight semantic-proxy signal rather than a production embedding-based dense retriever.
+
+The re-ranking component should be interpreted as a heuristic second-stage re-ranker rather than a neural Cross-Encoder.
+
+The goal is to study evaluation behavior and failure modes, especially the fact that re-ranking cannot recover relevant documents missed by first-stage retrieval.
+
+---
+
 ## Files
 
 ### `src/eval_metrics_demo.py`
@@ -60,9 +74,9 @@ This script is used to understand how the metrics are calculated manually.
 
 Compares three retrieval methods:
 
-- BM25
-- Dense Retrieval
-- Hybrid Retrieval
+- BM25-style lexical retrieval
+- Lightweight semantic-proxy retrieval
+- Hybrid retrieval
 
 The script evaluates each retriever using:
 
@@ -74,7 +88,7 @@ The script evaluates each retriever using:
 
 ### `src/alpha_sensitivity_demo.py`
 
-Runs alpha sensitivity analysis for Hybrid Retrieval.
+Runs alpha sensitivity analysis for hybrid retrieval.
 
 It tests different alpha values:
 
@@ -82,7 +96,7 @@ It tests different alpha values:
 0.00, 0.25, 0.50, 0.75, 1.00
 ```
 
-The goal is to observe how changing the balance between BM25 and Dense Retrieval affects ranking quality.
+The goal is to observe how changing the balance between BM25-style lexical retrieval and the semantic-proxy signal affects ranking quality.
 
 ---
 
@@ -91,14 +105,14 @@ The goal is to observe how changing the balance between BM25 and Dense Retrieval
 Implements a two-stage retrieval pipeline:
 
 ```text
-BM25 first-stage retriever
+BM25-style first-stage retriever
         ↓
-Cross-Encoder re-ranker
+heuristic second-stage re-ranker
         ↓
 reranked top results
 ```
 
-This experiment shows how re-ranking can improve MRR and nDCG.
+This experiment shows how a second-stage re-ranking step can improve MRR and nDCG when the relevant document is already present in the first-stage candidate set.
 
 ---
 
@@ -126,6 +140,12 @@ Measures whether relevant documents are included in the top-k retrieved results.
 Recall@k = number of relevant documents in top-k / total number of relevant documents
 ```
 
+Recall@k answers:
+
+```text
+Did the retriever find the relevant evidence at all?
+```
+
 ---
 
 ### Precision@k
@@ -134,6 +154,12 @@ Measures how many top-k retrieved documents are relevant.
 
 ```text
 Precision@k = number of relevant documents in top-k / k
+```
+
+Precision@k answers:
+
+```text
+How much noise exists in the retrieved top-k set?
 ```
 
 ---
@@ -146,15 +172,17 @@ MRR measures how early the first relevant document appears.
 RR = 1 / rank of first relevant document
 ```
 
-MRR is the average Reciprocal Rank across queries.
+MRR is the average reciprocal rank across queries.
 
 ---
 
 ### nDCG@k
 
-nDCG@k measures ranking quality with graded relevance.
+nDCG@k measures ranking quality.
 
-It rewards systems that place highly relevant documents near the top.
+It rewards systems that place relevant or highly relevant documents near the top.
+
+In this toy project, nDCG is used as an interpretable ranking metric for controlled retrieval experiments.
 
 ---
 
@@ -164,9 +192,9 @@ The retrieval comparison produced the following result:
 
 | Retriever | Mean Recall@3 | MRR | Mean nDCG@3 |
 |---|---:|---:|---:|
-| BM25 | 0.900 | 0.767 | 0.818 |
-| Dense Retrieval | 0.900 | 1.000 | 0.983 |
-| Hybrid Retrieval alpha=0.5 | 0.900 | 1.000 | 0.983 |
+| BM25-style retrieval | 0.900 | 0.767 | 0.818 |
+| Semantic-proxy retrieval | 0.900 | 1.000 | 0.983 |
+| Hybrid retrieval alpha=0.5 | 0.900 | 1.000 | 0.983 |
 
 Main conclusion:
 
@@ -174,16 +202,18 @@ Main conclusion:
 The same Recall@k does not mean the retrieval systems are equally good.
 ```
 
-BM25 retrieved relevant documents, but it often ranked them lower. Dense Retrieval and Hybrid Retrieval achieved better ranking quality.
+BM25-style retrieval retrieved relevant documents, but it often ranked them lower. The semantic-proxy and hybrid retrieval settings achieved better ranking quality on this toy evaluation set.
+
+These results should be interpreted as controlled prototype results, not as evidence that semantic-proxy retrieval is generally better than BM25 or production dense retrieval.
 
 ---
 
 ## Alpha Sensitivity
 
-Hybrid Retrieval uses:
+Hybrid retrieval uses:
 
 ```text
-hybrid_score = alpha * dense_score + (1 - alpha) * bm25_score
+hybrid_score = alpha * semantic_proxy_score + (1 - alpha) * bm25_score
 ```
 
 Alpha sensitivity result:
@@ -202,7 +232,9 @@ Main conclusion:
 In this experiment, alpha mainly affected ranking quality rather than recall coverage.
 ```
 
-Recall@3 remained unchanged, while MRR and nDCG improved as dense retrieval received more weight.
+Recall@3 remained unchanged, while MRR and nDCG improved as the semantic-proxy signal received more weight.
+
+This motivates later query-aware routing instead of fixing one global alpha value.
 
 ---
 
@@ -211,9 +243,9 @@ Recall@3 remained unchanged, while MRR and nDCG improved as dense retrieval rece
 The re-ranking experiment used:
 
 ```text
-First-stage retriever: BM25
+First-stage retriever: BM25-style retrieval
 First-stage candidates: top 5
-Re-ranker: Cross-Encoder
+Re-ranker: heuristic second-stage re-ranker
 Evaluation: top 3
 ```
 
@@ -221,8 +253,8 @@ Result:
 
 | Stage | Mean Recall@3 | MRR | Mean nDCG@3 |
 |---|---:|---:|---:|
-| BM25 before re-ranking | 0.900 | 0.767 | 0.818 |
-| After Cross-Encoder re-ranking | 0.900 | 1.000 | 0.983 |
+| BM25-style before re-ranking | 0.900 | 0.767 | 0.818 |
+| After heuristic re-ranking | 0.900 | 1.000 | 0.983 |
 
 Main conclusion:
 
@@ -245,12 +277,18 @@ If the correct document is missing from the first-stage candidate set, the re-ra
 Example:
 
 ```text
-Query: What is dense retrieval?
+Query: What is semantic retrieval?
 Gold relevant docs: d2, d7
 First-stage candidates: d1, d3
 ```
 
 Since the correct documents were not included in the candidate set, re-ranking could not improve Recall, MRR, or nDCG.
+
+This is the key recall ceiling argument:
+
+```text
+Re-ranking can improve ordering, but it cannot fix missing first-stage recall.
+```
 
 ---
 
@@ -259,9 +297,9 @@ Since the correct documents were not included in the candidate set, re-ranking c
 1. Retrieval evaluation should consider both recall and ranking quality.
 2. Recall@k alone is not enough.
 3. MRR and nDCG@k reveal whether relevant documents are ranked early.
-4. Dense Retrieval and Hybrid Retrieval can improve semantic ranking quality.
-5. Hybrid alpha affects the balance between sparse and dense retrieval signals.
-6. Cross-Encoder re-ranking can improve ranking quality.
+4. Semantic-proxy and hybrid retrieval can improve ranking quality on this toy corpus.
+5. Hybrid alpha affects the balance between lexical and semantic-proxy signals.
+6. Heuristic re-ranking can improve ranking quality when relevant candidates are already retrieved.
 7. Re-ranking cannot fix missing candidates from first-stage retrieval.
 
 ---
@@ -273,7 +311,42 @@ A good retrieval pipeline needs:
 ```text
 High-recall first-stage retrieval
         +
-Accurate second-stage re-ranking
+Accurate second-stage ranking
 ```
 
 The first-stage retriever must include relevant documents in the candidate set. The re-ranker can then improve the order of those candidates.
+
+---
+
+## Limitations
+
+Current limitations:
+
+- Small toy dataset
+- Simplified relevance labels
+- Lightweight semantic-proxy retrieval instead of production dense retrieval
+- Heuristic re-ranking instead of neural Cross-Encoder re-ranking
+- No learned ranking model
+- No large-scale IR benchmark
+
+---
+
+## Future Work
+
+Possible next steps:
+
+- Add embedding-based dense retrieval
+- Add a neural Cross-Encoder or reranker model
+- Compare heuristic and neural re-ranking
+- Evaluate on larger retrieval benchmarks
+- Add graded relevance labels
+- Analyze how retrieval ranking affects answer faithfulness
+- Connect retrieval failures to RAG failure diagnosis
+
+---
+
+## Summary
+
+Day 5 shows that retrieval evaluation must distinguish recall and ranking quality.
+
+The main insight is that re-ranking can improve ranking only within the first-stage candidate set. If first-stage retrieval misses the relevant document, re-ranking cannot fix the failure. This motivates later work on failure diagnosis, answer-level evaluation, and adaptive RAG strategy selection.
